@@ -1,8 +1,8 @@
-# ⚡ ElektroKasir POS
+# ⚡ ElektroKasir POS (Desktop Edition)
 
-Sistem Point of Sale berbasis web untuk toko elektronik skala kecil hingga menengah.
+Sistem Point of Sale berbasis *Desktop* (C# WebView2) dengan *backend* Node.js untuk toko elektronik skala kecil hingga menengah. Dirancang khusus untuk berjalan secara mandiri (*offline*) tanpa memerlukan koneksi internet atau *server* eksternal.
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue) ![Stack](https://img.shields.io/badge/stack-React%20%2B%20Express%20%2B%20PostgreSQL-informational)
+![Version](https://img.shields.io/badge/version-1.0.0-blue) ![Stack](https://img.shields.io/badge/stack-React%20%2B%20Express%20%2B%20SQLite%20%2B%20C%23-informational)
 
 ---
 
@@ -10,184 +10,86 @@ Sistem Point of Sale berbasis web untuk toko elektronik skala kecil hingga menen
 
 ```
 elektrokasir/
-├── backend/                 # Express + Prisma API
+├── backend/                 # API Server (Express + Prisma + SQLite)
 │   ├── prisma/
-│   │   ├── schema.prisma    # Database schema
-│   │   └── seed.js          # Data awal (users, produk, kategori)
-│   ├── src/
-│   │   ├── controllers/     # Business logic
-│   │   ├── middleware/      # Auth, error handler
-│   │   ├── routes/          # API routes
-│   │   └── utils/           # JWT, response helpers
-│   └── .env.example
-├── frontend/                # React + Vite + Tailwind
-│   ├── src/
-│   │   ├── pages/           # LoginPage, POSPage, DashboardPage, dst.
-│   │   ├── components/      # Layout, ReceiptModal
-│   │   ├── store/           # Zustand (auth, cart)
-│   │   └── utils/           # API client, formatter
-│   └── nginx.conf
-└── docker-compose.yml
+│   │   ├── schema.prisma    # Skema Database
+│   │   └── dev.db           # File Database Utama Lokal 
+│   ├── src/                 # Logika Bisnis (Produk, Transaksi, Kasir)
+│   └── update_users.js      # Skrip utilitas manajemen akun
+├── frontend/                # Antarmuka Pengguna (React + Vite + Tailwind)
+│   ├── src/                 # Kode sumber UI
+│   └── dist/                # Hasil build (*Production Ready*)
+└── DesktopApp/              # Program Cangkang C# Windows (WebView2)
+    └── Release/             # Folder berisikan file .exe akhir
 ```
 
 ---
 
-## 🚀 Cara Menjalankan
+## 🚀 Cara Menjalankan & Instalasi Lokal
 
-### A) Dengan Docker Compose (Rekomendasi)
+Karena ini adalah sistem mandiri berbasi SQLite, Anda **tidak perlu** menginstal server *database* seperti MySQL atau PostgreSQL.
 
-```bash
-# Clone & masuk ke folder
-cd elektrokasir
+### Persiapan Syarat (Prerequisites)
+Pastikan komputer utama penyimpan data (Komputer Kasir) telah menginstal **Node.js LTS** untuk Windows.
 
-# Jalankan semua service
-docker compose up --build -d
+### Menjalankan Lewat Aplikasi Windows (.exe)
+Folder proyek telah dilengkapi dengan berkas C# (*Executable*).
+1. Buka folder `Release` atau gunakan _shortcut_ yang sudah disediakan.
+2. Klik 2x pada file `ElektroKasirDesktop.exe`.
+3. Aplikasi akan otomatis menjalankan *backend* di latar belakang dan memuat antarmuka kasir dalam mode layar penuh berbasis *Edge WebView*.
 
-# Cek logs
-docker compose logs -f backend
-```
-
-Akses: **http://localhost:5173**
-
-### B) Manual (Development)
-
-**1. Setup PostgreSQL**
-```bash
-# Buat database
-createdb elektrokasir
-```
-
-**2. Backend**
+### Menjalankan Secara Manual via Terminal (Untuk Modifikasi/Developer)
+**1. Menyalakan API & Database (Backend)**
 ```bash
 cd backend
-cp .env.example .env
-# Edit .env — isi DATABASE_URL, JWT_SECRET, dll.
-
 npm install
-npx prisma migrate dev --name init
 npx prisma generate
-node prisma/seed.js
-npm run dev
-# API berjalan di http://localhost:5000
+node src/index.js
+# API Server akan berjalan otomatis di latar belakang
 ```
 
-**3. Frontend**
+**2. Membangun / Menjalankan UI (Frontend)**
 ```bash
 cd frontend
 npm install
+# Untuk merevisi dan melihat perubahan langsung:
 npm run dev
-# App berjalan di http://localhost:5173
+
+# Untuk menyatukan / mem-build ke versi akhir (production):
+npm run build
 ```
 
 ---
 
-## 🔑 Akun Demo
+## 🔑 Autentikasi & Akun
+*(Perhatian: Demi keamanan, kata sandi bawaan tidak dicantumkan secara publik di dokumen ini.)*
 
-| Role  | Email                        | Password   |
-|-------|------------------------------|------------|
-| Admin | admin@elektrokasir.com       | admin123   |
-| Kasir | kasir@elektrokasir.com       | kasir123   |
-
----
-
-## 📡 API Endpoints
-
-### Auth
-```
-POST   /api/auth/login          Login & dapatkan token
-POST   /api/auth/refresh        Refresh access token
-POST   /api/auth/logout         Logout
-GET    /api/auth/me             Info user aktif
-```
-
-### Products
-```
-GET    /api/products                   List produk (search, filter, pagination)
-GET    /api/products/barcode/:barcode  Cari by barcode (untuk scan)
-GET    /api/products/:id               Detail produk + stock logs
-POST   /api/products                   Tambah produk [ADMIN]
-PUT    /api/products/:id               Edit produk [ADMIN]
-PATCH  /api/products/:id/stock         Adjust stok [ADMIN]
-DELETE /api/products/:id               Hapus (soft delete) [ADMIN]
-```
-
-### Categories
-```
-GET    /api/categories          List semua kategori
-POST   /api/categories          Buat kategori [ADMIN]
-PUT    /api/categories/:id      Edit kategori [ADMIN]
-DELETE /api/categories/:id      Hapus kategori [ADMIN]
-```
-
-### Transactions
-```
-GET    /api/transactions        List transaksi (filter tanggal, pagination)
-GET    /api/transactions/:id    Detail transaksi + items
-POST   /api/transactions        Buat transaksi baru (checkout)
-```
-
-### Dashboard (ADMIN)
-```
-GET    /api/dashboard           KPI hari ini + stok menipis + top produk + chart mingguan
-```
-
-### Users (ADMIN)
-```
-GET    /api/users               List semua user
-POST   /api/users               Tambah user
-PUT    /api/users/:id           Edit user
-```
+Aplikasi kasir ini menggunakan sistem autentikasi mandiri lintas-jaringan (*Local Network*):
+1. **Sistem ID Pengguna**: Semua kasir dan admin masuk menggunakan ID (misal: `admin`, `kasir`), bukan lagi melalui pengetikan *email* panjang demi kecepatan antrean.
+2. Keamanan sandi di-hash menggunakan **bcrypt**.
+3. Hubungi manajer operasional IT toko untuk mendapatkan ID dan Sandi bawaan (*Default Password*). Admin memiliki hak penuh untuk membuatkan/mengubah akun kasir melalui laman "Pengguna" di menu utama.
 
 ---
 
-## 🗄 Database Schema
+## 🔒 Privasi dan Mode Jaringan Lokal (Offline LAN)
 
-```
-Users           → id, name, email, password, role (ADMIN/KASIR), isActive
-Categories      → id, name, slug
-Products        → id, name, sku, barcode, categoryId, price, costPrice, stock, minStock, rackLocation
-Transactions    → id, invoiceNumber, userId, subtotal, discountAmount, total, paymentMethod, amountPaid, changeAmount, status
-TransactionItems→ id, transactionId, productId, productName, quantity, unitPrice, discountPct, subtotal
-StockLogs       → id, productId, change, reason, stockBefore, stockAfter
-RefreshTokens   → id, token, userId, expiresAt
-```
+Aplikasi dirancang anti-bocor:
+- **Offline First**: Semua transaksi dan perhitungan disimpan fisikal murni ke dalam hardisk komputer kasir (di dalam file `dev.db`).
+- **Akses LAN Multi-Kasir**: Meskipun tidak terhubung internet global, Anda tetap bisa menyambungkan *Tablet/iPad* sebagai perangkat mesin cetak struk ekstra, asalkan perangkat tersebut **tersambung ke jaringan WiFi ruang toko yang sama**, dengan mengakses alamat IP komputer utama (Contoh: `http://192.168.1.5:5000`).
+- **Rate Limit**: Batasan permintaan login dimatikan untuk menjamin kelancaran *multi-device* dalam jaringan aman.
 
 ---
 
-## 🔒 Keamanan
+## 🛠 Teknologi Utama
 
-- Password di-hash dengan bcrypt (cost factor 12)
-- JWT access token (15 menit) + refresh token (7 hari)
-- Role-based access control (ADMIN / KASIR)
-- Rate limiting: 200 req/15min global, 10 req/15min untuk login
-- Helmet.js untuk HTTP security headers
-- Input validation dengan express-validator
-
----
-
-## 🛠 Tech Stack
-
-| Layer     | Teknologi                            |
+| Lingkup   | Teknologi Pendukung                  |
 |-----------|--------------------------------------|
-| Frontend  | React 18, Vite, Tailwind CSS, Zustand|
+| Frontend  | React 18, Vite, Tailwind CSS         |
 | Backend   | Node.js, Express, Prisma ORM         |
-| Database  | PostgreSQL                           |
-| Auth      | JWT (access + refresh token)         |
-| Deploy    | Docker, Docker Compose, Nginx        |
-
----
-
-## 🗺 Roadmap v1.1
-
-- [ ] Export laporan ke Excel/PDF
-- [ ] Barcode generator & print label
-- [ ] Manajemen supplier & purchase order
-- [ ] Multi-outlet support
-- [ ] PWA (offline mode)
-- [ ] Notifikasi WhatsApp untuk stok menipis
+| Database  | **SQLite** (Standalone Desktop App)  |
+| Desktop   | C# Windows Forms (.NET) + WebView2   |
 
 ---
 
 ## 📝 Lisensi
-
-MIT — bebas digunakan untuk kebutuhan komersial.
+MIT — Bebas digunakan dan dimodifikasi untuk kebutuhan komersial internal.
