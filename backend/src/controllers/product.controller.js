@@ -16,6 +16,7 @@ const getProducts = async (req, res, next) => {
         { name: { contains: search } },
         { sku: { contains: search } },
         { barcode: { contains: search } },
+        { rackLocation: { contains: search } },
         { category: { name: { contains: search } } },
       ];
     }

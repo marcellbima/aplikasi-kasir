@@ -178,7 +178,7 @@ export default function POSPage() {
               ref={searchRef}
               value={search}
               onChange={e => setSearch(e.target.value)}
-              placeholder="Cari produk…"
+              placeholder="Cari produk, lokasi…"
               className="input pl-9 py-2 text-sm w-52"
             />
           </div>

@@ -120,7 +120,7 @@ export default function ProductsPage() {
         <input
           value={search}
           onChange={e => setSearch(e.target.value)}
-          placeholder="Cari nama, SKU, barcode…"
+          placeholder="Cari nama, SKU, barcode, lokasi…"
           className="input pl-10"
         />
       </div>
