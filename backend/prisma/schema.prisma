@@ -1,0 +1,125 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  password     String
+  role         String   @default("KASIR")
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  transactions  Transaction[]
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+model Category {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  slug      String    @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  products  Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id           String   @id @default(uuid())
+  name         String
+  sku          String   @unique
+  barcode      String?  @unique
+  categoryId   String
+  price        Decimal  
+  costPrice    Decimal  
+  stock        Int      @default(0)
+  minStock     Int      @default(5)
+  rackLocation String?
+  description  String?
+  imageUrl     String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  category         Category          @relation(fields: [categoryId], references: [id])
+  transactionItems TransactionItem[]
+  stockLogs        StockLog[]
+
+  @@map("products")
+}
+
+model Transaction {
+  id            String            @id @default(uuid())
+  invoiceNumber String            @unique
+  userId        String
+  subtotal      Decimal           
+  discountAmount Decimal          @default(0)
+  taxAmount     Decimal           @default(0)
+  total         Decimal           
+  paymentMethod String
+  amountPaid    Decimal           
+  changeAmount  Decimal           @default(0)
+  status        String            @default("COMPLETED")
+  notes         String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  user  User              @relation(fields: [userId], references: [id])
+  items TransactionItem[]
+
+  @@map("transactions")
+}
+
+model TransactionItem {
+  id            String  @id @default(uuid())
+  transactionId String
+  productId     String
+  productName   String
+  quantity      Int
+  unitPrice     Decimal 
+  discountPct   Decimal @default(0)
+  subtotal      Decimal 
+
+  transaction Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  product     Product     @relation(fields: [productId], references: [id])
+
+  @@map("transaction_items")
+}
+
+model StockLog {
+  id        String   @id @default(uuid())
+  productId String
+  change    Int
+  reason    String
+  stockBefore Int
+  stockAfter  Int
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id])
+
+  @@map("stock_logs")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}

@@ -1,0 +1,9 @@
+FROM node:20-alpine
+RUN apk add --update --no-cache openssl
+WORKDIR /app
+COPY package*.json ./
+RUN npm install --omit=dev
+COPY . .
+RUN npx prisma generate
+EXPOSE 5000
+CMD ["sh", "-c", "npx prisma migrate deploy && node prisma/seed.js && node src/index.js"]

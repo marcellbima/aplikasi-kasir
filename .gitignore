@@ -1,0 +1,52 @@
+# =========================
+# FILE RAHASIA & LOKAL (.env)
+# =========================
+# File ini HARAM hukumnya untuk di-upload karena berisi kunci rahasia aplikasi
+.env
+.env.*
+!.env.example
+
+# =========================
+# DATA PENJUALAN KASIR
+# =========================
+# Jangan pernah upload database SQLite karena ini milik toko lokal
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+backend/prisma/*.db
+backend/prisma/*.db-journal
+
+# =========================
+# DEPENDENSI NODE.JS
+# =========================
+# Folder berisi ratusan MB modul yang bisa diunduh ulang oleh GitHub
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# =========================
+# HASIL BUILD (REACT FRONTEND)
+# =========================
+# Hasil build bisa dibuat ulang melalui CI/CD
+frontend/dist/
+frontend/build/
+
+# =========================
+# HASIL COMPILE APLIKASI C# DESKTOP
+# =========================
+# File mentah EXE, BIN, dan OBJ tidak perlu diupload
+DesktopApp/bin/
+DesktopApp/obj/
+DesktopApp/Release/
+Release/
+*.exe
+*.dll
+
+# =========================
+# LAIN-LAIN (SISTEM)
+# =========================
+.DS_Store
+.vscode/
+.idea/
+Thumbs.db
